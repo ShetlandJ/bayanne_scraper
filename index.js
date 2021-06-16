@@ -1,6 +1,20 @@
 const puppeteer = require('puppeteer');
 require('dotenv').config()
 
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+
+const csvWriter = createCsvWriter({
+    path: 'results.csv',
+    header: [
+        { id: 'index', title: 'Index' },
+        { id: 'personName', title: 'Name' },
+        { id: 'birthDateString', title: 'Birth date' },
+        { id: 'birthLocation', title: 'Birth location' },
+        { id: 'deathDateString', title: 'Death date' },
+        { id: 'deathLocation', title: 'Death location' },
+    ]
+});
+
 let run = async (id = 'I210520') => {
     const browser = await puppeteer.launch({ headless: false });
     const site = `https://www.bayanne.info/Shetland/pedigree.php?personID=${id}&tree=ID1&parentset=0&display=standard&generations=8`
@@ -26,17 +40,7 @@ let run = async (id = 'I210520') => {
 
     await page.click('.loginbtn');
 
-    await wait(1500);
-    // await page.evaluate(async () => {
-    //     username = document.getElementById('tngusername');
-    //     pw = document.getElementById('tngpassword');
-    //     console.log(username, pw);
-    //     username.type('James');
-    //     username.value = 'James';
-    //     pw.type('Showbiz4');
-    //     pw.value = 'Showbiz4'
-    // })
-
+    await wait(1000);
 
     const rows = await page.evaluate(async () => {
         let allPersonnelBoxes = Array.from(document.getElementsByClassName('pedbox rounded10'));
@@ -51,6 +55,30 @@ let run = async (id = 'I210520') => {
             });
         }
         await delay(1500);
+
+        let getBdmData = (rows, typeToSearch) => {
+            let birthDate = '';
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].innerHTML.includes(typeToSearch)) {
+                    birthDate = rows[i].children[1].innerHTML;
+                }
+            }
+
+            console.log(birthDate);
+            return birthDate;
+        }
+
+        let getLocationData = (rows, typeToSearch) => {
+            let birthDate = '';
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].innerHTML.includes(typeToSearch)) {
+                    birthDate = rows[i + 1].children[1].innerHTML;
+                }
+            }
+
+            console.log(birthDate);
+            return birthDate;
+        }
 
         const data = [];
         for (let i = 1; i <= allPersonnelBoxes.length; i++) {
@@ -71,11 +99,11 @@ let run = async (id = 'I210520') => {
                 deathDateString = '';
                 deathDateString = '';
             } else {
-                let birthTableRow = tableRows[1].children
-                if (birthTableRow[0].innerHTML.includes("B:")) {
-                    birthDateString = birthTableRow[1].innerHTML;
-                }
-                birthLocation = tableRows[2].children[1].innerHTML;
+                birthDateString = getBdmData(tableRows, 'B:');
+                birthLocation = getLocationDate(tableRows, 'B:');
+
+                marrageDateString = getBdmData(tableRows, 'B:');
+                marriageLocation = getLocationDate(tableRows, 'B:');
 
                 let marriageOrDeathRow = tableRows[3] && tableRows[3].children
                 if (marriageOrDeathRow) {
@@ -86,15 +114,15 @@ let run = async (id = 'I210520') => {
                                 tableRows[5].innerHTML
                             )
                         }
-                        if (tableRows[4].children[0].innerHTML.includes('D')) {
+                        if (tableRows[4] && tableRows[4].children[0].innerHTML.includes('D')) {
                             deathDateString = tableRows[4].children[1].innerHTML
-                            if (tableRows[5]) {
+                            if (tableRows[5] && tableRows[5].children) {
                                 deathLocation = tableRows[5].children[1].innerHTML;
                             }
 
-                        } else if (tableRows[5]) {
+                        } else if (tableRows[5] && tableRows[5].children) {
                             deathDateString = tableRows[5].children[1].innerHTML;
-                            if (tableRows[6]) {
+                            if (tableRows[6] && tableRows[6].children) {
                                 deathLocation = tableRows[6].children[1].innerHTML;
                             }
                         }
@@ -116,11 +144,13 @@ let run = async (id = 'I210520') => {
                 deathLocation
             });
         }
+        console.log(data);
 
         return data;
     })
 
-    console.log(rows);
+    csvWriter.writeRecords[rows];
+    process.exit(1);
 }
 
 run();
@@ -130,7 +160,3 @@ let wait = (time) => {
         setTimeout(resolve, time)
     });
 }
-
-// triggerPopupShow()
-// await delay(2000);
-// gatherData();
