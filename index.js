@@ -58,27 +58,27 @@ let run = async (id = 'I210520') => {
         await delay(2000);
 
         let getBdmData = (rows, typeToSearch) => {
-            let birthDate = '';
+            let bdm = '';
             for (var i = 0; i < rows.length; i++) {
                 if (rows[i].innerHTML.includes(typeToSearch)) {
-                    birthDate = rows[i].children[1].innerHTML;
+                    bdm = rows[i].children[1].innerHTML;
                 }
             }
 
-            return birthDate;
+            return bdm;
         }
 
         let getLocationData = (rows, typeToSearch) => {
-            let birthDate = '';
+            let location = '';
             for (var i = 0; i < rows.length; i++) {
                 if (rows[i].innerHTML.includes(typeToSearch)) {
                     if (rows[i + 1]) {
-                        birthDate = rows[i + 1].children[1].innerHTML;
+                        location = rows[i + 1].children[1].innerHTML;
                     }
                 }
             }
 
-            return birthDate;
+            return location;
         }
 
         const data = [];
