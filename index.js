@@ -57,28 +57,15 @@ let run = async (id = 'I210520') => {
 
         await delay(2000);
 
-        let getBdmData = (rows, typeToSearch) => {
-            let bdm = '';
+        let getData = (rows, typeToSearch, indexAdd = 0) => {
+            let data = '';
             for (var i = 0; i < rows.length; i++) {
                 if (rows[i].innerHTML.includes(typeToSearch)) {
-                    bdm = rows[i].children[1].innerHTML;
+                    data = rows[i + indexAdd].children[1].innerHTML;
                 }
             }
 
-            return bdm;
-        }
-
-        let getLocationData = (rows, typeToSearch) => {
-            let location = '';
-            for (var i = 0; i < rows.length; i++) {
-                if (rows[i].innerHTML.includes(typeToSearch)) {
-                    if (rows[i + 1]) {
-                        location = rows[i + 1].children[1].innerHTML;
-                    }
-                }
-            }
-
-            return location;
+            return data;
         }
 
         const data = [];
@@ -95,19 +82,15 @@ let run = async (id = 'I210520') => {
 
             if (!tableRows[1]) {
                 personName = 'Unknown';
-                birthDateString = '';
-                birthLocation = '';
-                deathDateString = '';
-                deathDateString = '';
             } else {
-                birthDateString = getBdmData(tableRows, 'B:');
-                birthLocation = getLocationData(tableRows, 'B:');
+                birthDateString = getData(tableRows, 'B:');
+                birthLocation = getData(tableRows, 'B:', 1);
 
-                marriageDateString = getBdmData(tableRows, 'M:');
-                marriageLocation = getLocationData(tableRows, 'M:');
+                marriageDateString = getData(tableRows, 'M:');
+                marriageLocation = getData(tableRows, 'M:', 1);
 
-                deathDateString = getBdmData(tableRows, 'D:');
-                deathLocation = getLocationData(tableRows, 'D:');
+                deathDateString = getData(tableRows, 'D:');
+                deathLocation = getData(tableRows, 'D:', 1);
             }
 
             data.push({
