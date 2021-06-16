@@ -40,7 +40,7 @@ let run = async (id = 'I210520') => {
 
     await page.click('.loginbtn');
 
-    await wait(1000);
+    await wait(3000);
 
     const rows = await page.evaluate(async () => {
         let allPersonnelBoxes = Array.from(document.getElementsByClassName('pedbox rounded10'));
@@ -54,7 +54,8 @@ let run = async (id = 'I210520') => {
                 setTimeout(resolve, time)
             });
         }
-        await delay(1500);
+
+        await delay(2000);
 
         let getBdmData = (rows, typeToSearch) => {
             let birthDate = '';
@@ -64,7 +65,6 @@ let run = async (id = 'I210520') => {
                 }
             }
 
-            console.log(birthDate);
             return birthDate;
         }
 
@@ -72,11 +72,12 @@ let run = async (id = 'I210520') => {
             let birthDate = '';
             for (var i = 0; i < rows.length; i++) {
                 if (rows[i].innerHTML.includes(typeToSearch)) {
-                    birthDate = rows[i + 1].children[1].innerHTML;
+                    if (rows[i + 1]) {
+                        birthDate = rows[i + 1].children[1].innerHTML;
+                    }
                 }
             }
 
-            console.log(birthDate);
             return birthDate;
         }
 
@@ -100,39 +101,13 @@ let run = async (id = 'I210520') => {
                 deathDateString = '';
             } else {
                 birthDateString = getBdmData(tableRows, 'B:');
-                birthLocation = getLocationDate(tableRows, 'B:');
+                birthLocation = getLocationData(tableRows, 'B:');
 
-                marrageDateString = getBdmData(tableRows, 'B:');
-                marriageLocation = getLocationDate(tableRows, 'B:');
+                marriageDateString = getBdmData(tableRows, 'M:');
+                marriageLocation = getLocationData(tableRows, 'M:');
 
-                let marriageOrDeathRow = tableRows[3] && tableRows[3].children
-                if (marriageOrDeathRow) {
-                    if (marriageOrDeathRow[0].innerHTML.includes("M:")) {
-                        if (i === 58) {
-                            console.log(
-                                tableRows[4].innerHTML,
-                                tableRows[5].innerHTML
-                            )
-                        }
-                        if (tableRows[4] && tableRows[4].children[0].innerHTML.includes('D')) {
-                            deathDateString = tableRows[4].children[1].innerHTML
-                            if (tableRows[5] && tableRows[5].children) {
-                                deathLocation = tableRows[5].children[1].innerHTML;
-                            }
-
-                        } else if (tableRows[5] && tableRows[5].children) {
-                            deathDateString = tableRows[5].children[1].innerHTML;
-                            if (tableRows[6] && tableRows[6].children) {
-                                deathLocation = tableRows[6].children[1].innerHTML;
-                            }
-                        }
-                    } else if (marriageOrDeathRow[0].innerHTML.includes("D:")) {
-                        deathDateString = marriageOrDeathRow[1].innerHTML
-                        if (tableRows[4]) {
-                            deathLocation = tableRows[4].children[1].innerHTML;
-                        }
-                    }
-                }
+                deathDateString = getBdmData(tableRows, 'D:');
+                deathLocation = getLocationData(tableRows, 'D:');
             }
 
             data.push({
@@ -144,13 +119,12 @@ let run = async (id = 'I210520') => {
                 deathLocation
             });
         }
-        console.log(data);
 
         return data;
     })
 
-    csvWriter.writeRecords[rows];
-    process.exit(1);
+    csvWriter.writeRecords(rows)
+        .then(() => process.exit(1));
 }
 
 run();
